@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="/public/stylesheets/style.css">
+  <link rel="stylesheet" href="/public/stylesheets/style_start.css">
+  <link rel="stylesheet" href="/public/stylesheets/style_cd.css">
+  <title>Document</title>
+  <!-- <style>
+		.avatar-ctn .avatar {
+			width: 100px;
+    	height: 100px;
+		}
+	</style> -->
+</head>
+
+<body>
+  <div class="container">
+    <div class="navbar">
+      <a href="/">
+        <button type="button" class="btn btn-info mt-3">
+          HOME
+        </button>
+      </a>
+      <button type="button" class="btn btn-info mt-3" id="loadEventsBtn" data-toggle="modal" data-target="#viewEventsModal">
+        Favorite Events
+      </button>
+      <button type="button" class="btn btn-info mt-3" id="loadAthletesBtn" data-toggle="modal" data-target="#viewAthletesModal">
+        Favorite Athletes
+      </button>
+      <button type="button" class="btn btn-info mt-3" id="logOutBtn" data-toggle="modal" data-target="#logInModal">
+        LOG OUT
+      </button>
+    </div>
+
+    <div class="modal fade" id="viewEventsModal" tabindex="-1" role="dialog" aria-labelledby="viewEventsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="viewEventsModalLabel">Olympics2024 Events</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Sport Event</th>
+                  <th scope="col">Venue Name</th>
+                </tr>
+              </thead>
+              <tbody id="eventBody">
+                <!-- events here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="viewAthletesModal" tabindex="-1" role="dialog" aria-labelledby="viewAthletesModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="viewAthletesModalLabel">Olympics2024 Qualified Athletes</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Sports Event</th>
+                  <th scope="col">Nationality</th>
+                </tr>
+              </thead>
+              <tbody id="athleteBody">
+                <!-- Attendance rows will be inserted here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="row">
+        <div class="col-4">
+          <div id="user-card" class="card">
+            <!-- info here -->
+            <div class="modal-body" method="POST">
+              <label for="user name">Old Password</label>
+              <input type="text" class="form-control col-lg-9" id="old-pass" placeholder="Enter User Name..." name="username" required>
+              <label for="password">New Password</label>
+              <input type="text" class="form-control col-lg-9" id="new-pass" placeholder="Enter Password..." name="password" required>
+            </div>
+            <div class="modal-submit">
+              <button type="submit" id="confirmBtn" class="btn btn-info mt-4">
+                CONFIRM
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(document).ready(function() {
+      $.ajax({
+        url: '/api/profile',
+        method: 'GET',
+        success: function(data) {
+          var rows = '';
+          data.forEach(function(item) {
+            rows += `
+							<div class="avatar-ctn">
+              	<img style="width: 80%; height: auto;" src="${item.AvatarURL}" class="avatar" alt="user profile picture" />
+            	</div>
+							<div class="card-body">
+								<h5 class="card-title">${item.AccountName}</h5>
+							</div>`;
+          });
+          $('#user-card').before(rows);
+        },
+        error: function() {
+          alert('Failed to load event data.');
+        }
+      });
+
+      $('#loadEventsBtn').click(function() {
+        $.ajax({
+          url: '/api/login/events',
+          method: 'GET',
+          success: function(data) {
+            var rows = '';
+            data.forEach(function(event, index) {
+              rows += `<tr>
+                  <td>${event.EventName}</td>
+                  <td>${event.VenueList}</td>
+									<td>
+										<button id="delete-event" class="btn btn-danger btn-sm" data-eventid="${event.EventName}">Delete</button>
+                  </td>
+                </tr>`;
+            });
+            $('#eventBody').html(rows);
+          },
+          error: function() {
+            alert('Failed to load event data.');
+          }
+        });
+      });
+
+      $('#loadAthletesBtn').click(function() {
+        $.ajax({
+          url: '/api/login/athletes',
+          method: 'GET',
+          success: function(data) {
+            var rows = '';
+            data.forEach(function(athlete, index) {
+              rows += `<tr>
+										<td>${athlete.FullName}</td>
+										<td>${athlete.EventList}</td>
+										<td>${athlete.Nationality}</td>
+										<td>
+											<button id="delete-athlete" class="btn btn-danger btn-sm" data-athid="${athlete.FullName}">Delete</button>
+										</td>
+									</tr>`;
+            });
+            $('#athleteBody').html(rows);
+          },
+          error: function() {
+            alert('Failed to load athlete data.');
+          }
+        });
+      });
+
+      $('#logOutBtn').click(function() {
+        $.ajax({
+          url: '/api/logout',
+          method: 'POST',
+          success: function(response) {
+            window.location.href = '/';
+          },
+          error: function() {
+            alert('Failed to logout.');
+          }
+        });
+      });
+
+      $('#confirmBtn').click(function() {
+        const data = {
+          oldpass: $('#old-pass').val().trim(),
+          newpass: $('#new-pass').val().trim()
+        };
+        console.log(data);
+        $.ajax({
+          url: '/api/login/password',
+          type: 'POST',
+          data: data,
+          success: function(response) {
+            location.reload();
+          },
+          error: function() {
+            alert('Failed to set password.');
+          }
+        });
+      });
+    });
+    $(document).on('click', '#delete-event', function() {
+      var eventname = $(this).data('eventid');
+      console.log(eventname);
+      if (confirm('Are you sure you want to delete ' + eventname + '?')) {
+        $.ajax({
+          url: '/api/login/events/delete?event=' + eventname,
+          type: 'GET',
+          success: function(response) {
+            alert('Events deleted successfully');
+            location.reload();
+          },
+          error: function() {
+            alert('Error deleting event');
+          }
+        });
+      }
+    });
+		$(document).on('click', '#delete-athlete', function() {
+      var athname = $(this).data('athid');
+      console.log(athname);
+      if (confirm('Are you sure you want to delete ' + athname + '?')) {
+        $.ajax({
+          url: '/api/login/athletes/delete?athlete=' + athname,
+          type: 'GET',
+          success: function(response) {
+            alert('Events deleted successfully');
+            location.reload();
+          },
+          error: function() {
+            alert('Error deleting event');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>

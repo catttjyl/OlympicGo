@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>OlympicGo</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="/public/stylesheets/style.css">
+  <link rel="stylesheet" href="/public/stylesheets/style_start.css">
+  <link rel="stylesheet" href="/public/stylesheets/style_cd.css">
+
+  <style>
+    body {
+      padding: 50px;
+      font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    }
+
+    a {
+      color: #00B7FF;
+    }
+
+    .modal-body label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    .modal-submit {
+      display: flex;
+      padding-left: 20px;
+      padding-bottom: 20px;
+    }
+
+    .text-center {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .text {
+      padding: 50px;
+      font: 14px "Avenir Next", sans-serif;
+      background: #fff;
+      color: #48327C;
+      height: 10vh;
+      text-align: center;
+      display: flex;
+    }
+
+    .text span {
+      position: relative;
+      font-family: "Avenir Next", sans-serif;
+      font-weight: 900;
+      font-size: 128px;
+      text-transform: capitalize;
+      font-style: italic;
+      letter-spacing: 0.05em;
+      display: inline-block;
+    }
+
+    .text span:before {
+      position: absolute;
+      left: 0;
+      top: 0;
+      content: attr(filter-content);
+      filter: url(#motion-blur-filter);
+    }
+
+    svg {
+      display: none;
+    }
+  </style>
+
+  <style class="flex">
+    @import 'https://fonts.googleapis.com/css?family=Source+Sans+Pro:700';
+
+    *,
+    *::before,
+    *::after {
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100%;
+      width: 100%;
+      padding: 0px;
+      margin: 0;
+      font-family: "Avenir Next", sans-serif;
+      background: white;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .flex {
+      min-height: 50vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    a.bttn {
+      color: #48327C;
+      text-decoration: none;
+      -webkit-transition: 0.3s all ease;
+      transition: 0.3s ease all;
+
+      &:hover {
+        color: #fff;
+      }
+
+      &:focus {
+        color: #fff;
+      }
+    }
+
+    .bttn {
+      font-size: 18px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      display: inline-block;
+      text-align: center;
+      width: 270px;
+      font-weight: bold;
+      padding: 14px 0px;
+      border: 3px solid #48327C;
+      border-radius: 2px;
+      position: relative;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.1);
+
+      &:before {
+        -webkit-transition: 0.5s all ease;
+        transition: 0.5s all ease;
+        position: absolute;
+        top: 0;
+        left: 50%;
+        right: 50%;
+        bottom: 0;
+        opacity: 0;
+        content: '';
+        background-color: #48327C;
+        z-index: -2;
+      }
+
+      &:hover {
+        &:before {
+          -webkit-transition: 0.5s all ease;
+          transition: 0.5s all ease;
+          left: 0;
+          right: 0;
+          opacity: 1;
+        }
+      }
+
+      &:focus {
+        &:before {
+          transition: 0.5s all ease;
+          left: 0;
+          right: 0;
+          opacity: 1;
+        }
+      }
+    }
+  </style>
+
+  <style class="countdown">
+    :root {
+      --smaller: .75;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      align-items: center;
+      display: flex;
+      font-family: "Avenir Next", sans-serif;
+    }
+
+    .countdown {
+      color: #D6C278;
+      margin: -50px auto 0;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    h3 {
+      font-weight: normal;
+      letter-spacing: .125rem;
+      text-transform: uppercase;
+    }
+
+    li {
+      display: inline-block;
+      font-size: 1.5em;
+      list-style-type: none;
+      padding: 1em;
+      text-transform: uppercase;
+    }
+
+    li span {
+      display: block;
+      font-size: 4.5rem;
+    }
+
+    .emoji {
+      display: none;
+      padding: 1rem;
+    }
+
+    .emoji span {
+      font-size: 4rem;
+      padding: 0 .5rem;
+    }
+
+    @media all and (max-width: 768px) {
+      h3 {
+        font-size: calc(1.5rem * var(--smaller));
+      }
+
+      li {
+        font-size: calc(1.125rem * var(--smaller));
+      }
+
+      li span {
+        font-size: calc(3.375rem * var(--smaller));
+      }
+    }
+  </style>
+  <!-- <script src="/js/countdown.js" defer></script> -->
+</head>
+
+<body>
+  <div class="container">
+    <div class="navbar">
+      <button type="button" class="btn btn-info mt-3" id="loadEventsBtn" data-toggle="modal" data-target="#viewEventsModal">
+        Events
+      </button>
+      <button type="button" class="btn btn-info mt-3" id="loadAthletesBtn" data-toggle="modal" data-target="#viewAthletesModal">
+        Athletes
+      </button>
+      <a href="/map">
+        <button type="button" class="btn btn-info mt-3">
+          Map
+        </button>
+      </a>
+
+      <button type="button" class="btn btn-info mt-3" id="logInBtn" data-toggle="modal" data-target="#logInModal">
+        LOG IN/UP
+      </button>
+      <a href="/profile" id="profileBtn">
+        <button type="button" class="btn btn-info mt-3" data-toggle="modal" data-target="#logInModal">
+          Profile
+        </button>
+      </a>
+    </div>
+
+    <div class="text-center">
+      <div class="text">
+        <!--
+                Text template used from CodePen by Flourish.
+                URL: https://codepen.io/getflourish/pen/zYqRzmv
+            -->
+        <span filter-content="O">OlympicGO</span>
+      </div>
+
+      <!--
+            Button template used from CodePen by Kitsune.
+            URL: https://codepen.io/kitsune/pen/wWoRVW
+        -->
+      <div class="flex">
+        <a href="/filter" class="bttn">START</a>
+      </div>
+    </div>
+
+    <svg xmlns="http://www.w3.org/2000/svg">
+      <filter id="motion-blur-filter" filterUnits="userSpaceOnUse">
+        <feGaussianBlur stdDeviation="100 0"></feGaussianBlur>
+      </filter>
+    </svg>
+
+    <!--
+        Countdown template used from CodePen by AllThingsSmitty.
+        URL: https://codepen.io/AllThingsSmitty/pen/JJavZN
+    -->
+    <div class="countdown">
+      <h3 id="headline">Countdown to Closing Ceremony</h3>
+      <div id="countdown">
+        <ul>
+          <li><span id="days"></span>days</li>
+          <li><span id="hours"></span>Hours</li>
+          <li><span id="minutes"></span>Minutes</li>
+          <li><span id="seconds"></span>Seconds</li>
+        </ul>
+      </div>
+      <div id="content" class="emoji">
+        <span>🏅</span>
+        <span>🎉</span>
+      </div>
+    </div>
+
+
+
+    <!-- Modal for Viewing Events/Athletes -->
+    <div class="modal fade" id="viewEventsModal" tabindex="-1" role="dialog" aria-labelledby="viewEventsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="viewEventsModalLabel">Olympics2024 Events</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Sport Event</th>
+                  <th scope="col">Venue Name</th>
+                </tr>
+              </thead>
+              <tbody id="eventBody">
+                <!-- Attendance rows will be inserted here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="viewAthletesModal" tabindex="-1" role="dialog" aria-labelledby="viewAthletesModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="viewAthletesModalLabel">Olympics2024 Qualified Athletes</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Sports Event</th>
+                  <th scope="col">Nationality</th>
+                </tr>
+              </thead>
+              <tbody id="athleteBody">
+                <!-- Attendance rows will be inserted here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="logInModal" tabindex="-1" role="dialog" aria-labelledby="viewAthletesModalLabel" aria-hidd>
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="loginupModalLabel">LOG IN</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form action="login" id="loginForm" class="modal-body" method="POST">
+            <label for="user name">User Name</label>
+            <input type="text" class="form-control col-lg-9" id="username" placeholder="Enter User Name..." name="username" required>
+            <label for="password">Password</label>
+            <input type="text" class="form-control col-lg-9" id="password" placeholder="Enter Password..." name="password" required>
+            <button type="submit" class="btn btn-info mt-4">
+              SUBMIT
+            </button>
+          </form>
+          <form action="logup" id="signupForm" class="modal-body" method="POST" style="display:none;">
+            <label for="user name">User Name</label>
+            <input type="text" class="form-control col-lg-9" id="newUsername" placeholder="Enter User Name..." name="username" required>
+            <label for="password">Password</label>
+            <input type="text" class="form-control col-lg-9" id="newPassword" placeholder="Enter Password..." name="password" required>
+            <button type="submit" class="btn btn-info mt-4">
+              SUBMIT
+            </button>
+          </form>
+          <div class="modal-footer">
+            <button id="switchToSignup" class="btn btn-secondary">Switch to Sign Up</button>
+            <button id="switchToLogin" class="btn btn-secondary" style="display:none;">Switch to Log In</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    $(document).ready(function() {
+      $('#loadEventsBtn').click(function() {
+        $.ajax({
+          url: '/api/events',
+          method: 'GET',
+          success: function(data) {
+            var rows = '';
+            data.forEach(function(event, index) {
+              rows += `<tr>
+                  <td>${event.EventName}</td>
+                  <td>${event.VenueName}</td>
+                </tr>`;
+            });
+            $('#eventBody').html(rows);
+          },
+          error: function() {
+            alert('Failed to load event data.');
+          }
+        });
+      });
+
+      $('#loadAthletesBtn').click(function() {
+        $.ajax({
+          url: '/api/athletes',
+          method: 'GET',
+          success: function(data) {
+            var rows = '';
+            data.forEach(function(athlete, index) {
+              rows += `<tr>
+                  <td>${athlete.FullName}</td>
+                  <td>${athlete.EventList}</td>
+                  <td>${athlete.Nationality}</td>
+                </tr>`;
+            });
+            $('#athleteBody').html(rows);
+          },
+          error: function() {
+            alert('Failed to load athlete data.');
+          }
+        });
+      });
+
+      $.get('/api/check-login', function(data) {
+        if (data.isLoggedIn) {
+          $('#loginBtn').hide();
+          $('#profileBtn').show();
+        } else {
+          $('#loginBtn').show();
+          $('#profileBtn').hide();
+        }
+      });
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+      const loginForm = document.getElementById('loginForm');
+      const signupForm = document.getElementById('signupForm');
+      const switchToSignup = document.getElementById('switchToSignup');
+      const switchToLogin = document.getElementById('switchToLogin');
+
+      switchToSignup.addEventListener('click', function() {
+        loginForm.style.display = 'none';
+        signupForm.style.display = 'block';
+        switchToSignup.style.display = 'none';
+        switchToLogin.style.display = 'block';
+        document.getElementById('loginupModalLabel').textContent = 'SIGN UP';
+      });
+
+      switchToLogin.addEventListener('click', function() {
+        signupForm.style.display = 'none';
+        loginForm.style.display = 'block';
+        switchToLogin.style.display = 'none';
+        switchToSignup.style.display = 'block';
+        document.getElementById('loginupModalLabel').textContent = 'LOG IN';
+      });
+    });
+  </script>
+
+  <script>
+    (function() {
+      const second = 1000,
+        minute = second * 60,
+        hour = minute * 60,
+        day = hour * 24;
+
+      let closing_ceremony = "August 11, 2024 21:00:00",
+        countDown = new Date(closing_ceremony).getTime(),
+        x = setInterval(function() {
+
+          let now = new Date().getTime(),
+            distance = countDown - now;
+
+          document.getElementById("days").innerText = Math.floor(distance / (day)),
+            document.getElementById("hours").innerText = Math.floor((distance % (day)) / (hour)),
+            document.getElementById("minutes").innerText = Math.floor((distance % (hour)) / (minute)),
+            document.getElementById("seconds").innerText = Math.floor((distance % (minute)) / second);
+
+          //do something later when date is reached
+          if (distance < 0) {
+            let headline = document.getElementById("headline"),
+              countdown = document.getElementById("countdown"),
+              content = document.getElementById("content");
+
+            headline.innerText = "It's Closing Ceremony!";
+            countdown.style.display = "none";
+            content.style.display = "block";
+
+            clearInterval(x);
+          }
+          //seconds
+        }, 0)
+    }());
+  </script>
+</body>
+
+</html>

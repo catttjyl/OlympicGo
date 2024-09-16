@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>OlympicGo - Map</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- <link href="/stylesheets/style.css" rel="stylesheet"> -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    .filter {
+      display: flex;
+			top: 10%;
+      align-items: center;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .filter .search {
+      width: 60%;
+      position: relative;
+      /* display: flex; */
+      justify-items: center;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    .filter .search div {
+      position: relative;
+    }
+
+		.filter .search .text-container {
+			display: block;
+			background-color: #f1f1f1;
+			border-radius: 10%;
+		}
+
+    .filter .searchTerm {
+      width: 100%;
+      border: 3px solid #303030;
+      border-right: none;
+      padding: 10px;
+      height: 40px;
+      outline: none;
+    }
+
+    /* .filter .searchTerm:focus {
+      color: #6046ff;
+    } */
+
+    .filter .loadButton {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #303030;
+      text-align: center;
+      color: #303030;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .filter .listing {
+			display: none;
+      position: absolute;
+      max-height: 80%;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: #f1f1f1;
+      z-index: 1000;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .filter .listing>* {
+      padding: 5px 10px;
+      /* width: 55%; */
+      background: #f0f0f0;
+      list-style-type: none;
+    }
+
+    .filter .listing>*:hover {
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .filter .nextBtn {
+      width: 80px;
+      height: 80px;
+      margin-top: 40px;
+      border-radius: 50%;
+      font-size: 40px;
+      font-weight: bolder;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="filter">
+    <div class="search">
+      <h2>SELECT SPORTS?</h2>
+      <div style="display: flex;">
+        <div>
+          <input type="text" id="search-sport" class="searchTerm" placeholder="Search...">
+          <span id="filtered-sport" class="listing"></span>
+        </div>
+        <button type="submit" id="showSport" class="loadButton">
+          v
+        </button>
+				<div id="sport-list"></div>
+      </div>
+    </div>
+
+    <div class="search">
+      <h2>SELECT ATHLETES?</h2>
+      <div style="display: flex;">
+        <div>
+          <input type="text" id="search-athlete" class="searchTerm" placeholder="Search...">
+          <span id="filtered-athlete" class="listing"></span>
+        </div>
+        <button type="submit" id="submitAthlete" class="loadButton">
+          v
+        </button>
+				<div id="athlete-list"></div>
+      </div>
+    </div>
+
+    <div class="search">
+      <h2>SELECT SEAT CATEGORY?</h2>
+      <div style="display: flex;">
+        <div>
+          <input type="text" id="search-seat" class="searchTerm" placeholder="Search...">
+          <span id="filtered-seat" class="listing">
+            <ul>
+              <li>First</li>
+              <li>A</li>
+              <li>B</li>
+              <li>C</li>
+              <li>D</li>
+            </ul>
+          </span>
+        </div>
+        <button type="submit" id="submitAthlete" class="loadButton">
+          v
+        </button>
+      </div>
+    </div>
+
+    <div class="search">
+      <h2>SELECT SESSION TYPE?</h2>
+      <div style="display: flex;">
+        <div>
+          <input type="text" id="search-session" class="searchTerm" placeholder="Search...">
+          <span id="filtered-session" class="listing">
+            <ul>
+              <li>Metals</li>
+              <li>Qualifications</li>
+              <li>Ceremony</li>
+            </ul>
+          </span>
+        </div>
+        <div class="loadButton">
+          v
+        </div>
+				<div id="session-list"></div>
+      </div>
+    </div>
+    <a href="/"><button class="nextBtn" id="generate-plan">&#8594;</button></a>
+  </div>
+
+  <script>
+    const sports = [];
+    const ath = [];
+    const seat = '';
+    const session = [];
+
+    $(document).ready(function() {
+      $('#search-sport').focus(function() {
+        $('#filtered-sport').show();
+      });
+      $('#search-sport').blur(function() {
+        setTimeout(function() {
+          $('#filtered-sport').hide();
+        }, 200);
+      });
+      $('#search-sport').keydown(function() {
+        var searchTerm = $(this).val().trim();
+        $.ajax({
+          url: '/api/sports?search=' + searchTerm,
+          method: 'GET',
+          success: function(data) {
+            var rows = '';
+            data.forEach(function(sport) {
+              rows += `<ul>
+                  <li>${sport.EventName}</li>
+                </ul>`;
+            });
+            $('#filtered-sport').html(rows);
+          },
+          error: function() {
+            alert('Failed to load event data.');
+          }
+        });
+      });
+      $(document).on('click', '#filtered-sport ul li', function() {
+        console.log("trigger click on sport");
+        const text = $(this).text();
+        $('#sport-list').append(`<div class="text-container">${text}</div>`);
+				sports.append(text);
+      });
+
+      $('#search-athlete').focus(function() {
+        $('#filtered-athlete').show();
+      });
+      $('#search-athlete').blur(function() {
+        setTimeout(function() {
+          $('#filtered-athlete').hide();
+        }, 200);
+      });
+      $('#search-athlete').keydown(function() {
+        var searchTerm = $(this).val().trim();
+        $.ajax({
+          url: '/api/athletes?search=' + searchTerm,
+          method: 'GET',
+          success: function(data) {
+            var rows = '';
+            data.forEach(function(athlete) {
+              rows += `<ul>
+                  <li>${athlete.FullName}</li>
+                </ul>`;
+            });
+            $('#filtered-athlete').html(rows);
+          },
+          error: function() {
+            alert('Failed to load athlete data.');
+          }
+        });
+      });
+      $(document).on('click', '#filtered-athlete ul li', function() {
+        const text = $(this).text();
+        $('#athlete-list').append(`<div class="text-container">${text}</div>`);
+				ath.append(text);
+      });
+    });
+
+    $('#search-seat').focus(function() {
+      $('#filtered-seat').show();
+    });
+    $('#search-seat').blur(function() {
+      setTimeout(function() {
+        $('#filtered-seat').hide();
+      }, 200);
+    });
+		$(document).on('click', '#filtered-seat ul li', function() {
+        const text = $(this).text();
+        $('#search-seat').val(text);
+				seat = text;
+      });
+
+    $('#search-session').focus(function() {
+      $('#filtered-session').show();
+    });
+    $('#search-session').blur(function() {
+      setTimeout(function() {
+        $('#filtered-session').hide();
+      }, 200);
+    });
+		$(document).on('click', '#filtered-session ul li', function() {
+        const text = $(this).text();
+        $('#session-list').append(`<div class="text-container">${text}</div>`);
+				session.append(text);
+      });
+
+		$('#generate-plan').click(function() {
+        $.ajax({
+          url: '/api/plan?search=' + sports + ath + seat + session,
+          method: 'GET',
+          success: function(data) {
+            // action here
+          },
+          error: function() {
+            alert('Failed to load event data.');
+          }
+        });
+      });
+  </script>
+</body>
+
+</html>

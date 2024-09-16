@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>OlympicGo - Map</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- <link href="/stylesheets/style.css" rel="stylesheet"> -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      width: 60%;
+    }
+
+    .filter {
+      width: 40%;
+      height: 90vh;
+      position: fixed;
+      right: 0;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      /* padding: 100px; */
+    }
+
+    .filter .search {
+      width: 60%;
+      position: relative;
+      /* display: flex; */
+      justify-items: center;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    .filter .search div {
+      position: relative;
+    }
+
+    .filter .searchTerm {
+      width: 100%;
+      border: 3px solid #303030;
+      border-right: none;
+      padding: 10px;
+      height: 40px;
+      outline: none;
+    }
+
+    /* .filter .searchTerm:focus {
+      color: #6046ff;
+    } */
+
+    .filter .searchButton {
+      width: 40px;
+      height: 40px;
+      background: #303030;
+      text-align: center;
+      color: #fff;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .filter .listing {
+      position: absolute;
+      max-height: 80%;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: #f1f1f1;
+      z-index: 1000;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .filter .listing>* {
+      /* display: block; */
+      padding: 5px 10px;
+      /* width: 55%; */
+      background: #f0f0f0;
+      list-style-type: none;
+    }
+
+    .filter .listing>*:hover {
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .filter .backBtn {
+      width: 80px;
+      height: 80px;
+      margin-top: 40px;
+      border-radius: 50%;
+      font-size: 40px;
+      font-weight: bolder;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  <div class="filter">
+
+    <div class="search">
+      <h2>Venue</h2>
+      <div style="display: flex; position: relative;">
+        <div>
+          <input type="text" id="search-venue" class="searchTerm" placeholder="Search...">
+          <span id="filtered-venue" class="listing"></span>
+        </div>
+        <button type="submit" id="submitVenue" class="searchButton">v</button>
+      </div>
+    </div>
+
+    <div class="search">
+      <h2>Sports</h2>
+      <div style="display: flex;">
+        <div>
+          <input type="text" id="search-sport" class="searchTerm" placeholder="Search...">
+          <span id="filtered-sport" class="listing"></span>
+        </div>
+        <button type="submit" id="submitSport" class="searchButton">
+          v
+        </button>
+      </div>
+    </div>
+
+    <div class="search">
+      <h2>Athletes</h2>
+      <div style="display: flex;">
+        <div>
+          <input type="text" id="search-athlete" class="searchTerm" placeholder="Search...">
+          <span id="filtered-athlete" class="listing"></span>
+        </div>
+        <button type="submit" id="submitAthlete" class="searchButton">
+          v
+        </button>
+      </div>
+    </div>
+
+    <a href="/"><button class="backBtn">&#8592;</button></a>
+  </div>
+
+  <script>
+    $(document).ready(function() {
+      $('#search-venue').focus(function() {
+        $('#filtered-venue').show();
+      });
+      $('#search-venue').blur(function() {
+        setTimeout(function() {
+          $('#filtered-venue').hide();
+        }, 200);
+      });
+      $('#search-venue').keydown(function() {
+        var searchTerm = $(this).val().trim();
+        $.ajax({
+          url: '/api/venues?search=' + searchTerm,
+          method: 'GET',
+          success: function(data) {
+            var rows = '';
+            data.forEach(function(venue) {
+              rows += `<ul>
+                  <li data-lng="${venue.Longitude}" data-lat="${venue.Latitude}">${venue.SiteCode} - ${venue.VenueName}</li>
+                </ul>`;
+            });
+            $('#filtered-venue').html(rows);
+          },
+          error: function() {
+            alert('Failed to load venue data.');
+          }
+        });
+      });
+      $(document).on('click', '#filtered-venue ul li', function() {
+        console.log("trigger click on venue");
+        const text = $(this).text();
+        const lng = $(this).data('lng');
+        const lat = $(this).data('lat');
+        console.log('onclick', text, lng, lat);
+        $('#search-venue').val(text);
+        $('#search-venue').data('lng', lng);
+        $('#search-venue').data('lat', lat);
+      });
+
+      $('#search-sport').focus(function() {
+        $('#filtered-sport').show();
+      });
+      $('#search-sport').blur(function() {
+        setTimeout(function() {
+          $('#filtered-sport').hide();
+        }, 200);
+      });
+      $('#search-sport').keydown(function() {
+        var searchTerm = $(this).val().trim();
+        $.ajax({
+          url: '/api/sports?search=' + searchTerm,
+          method: 'GET',
+          success: function(data) {
+            var rows = '';
+            data.forEach(function(sport) {
+              rows += `<ul>
+                  <li>${sport.EventName}</li>
+                </ul>`;
+            });
+            $('#filtered-sport').html(rows);
+          },
+          error: function() {
+            alert('Failed to load event data.');
+          }
+        });
+      });
+      $(document).on('click', '#filtered-sport ul li', function() {
+        console.log("trigger click on sport");
+        const text = $(this).text();
+        $('#search-sport').val(text);
+      });
+
+      $('#search-athlete').focus(function() {
+        $('#filtered-athlete').show();
+      });
+      $('#search-athlete').blur(function() {
+        setTimeout(function() {
+          $('#filtered-athlete').hide();
+        }, 200);
+      });
+      $('#search-athlete').keydown(function() {
+        var searchTerm = $(this).val().trim();
+        $.ajax({
+          url: '/api/athletes?search=' + searchTerm,
+          method: 'GET',
+          success: function(data) {
+            var rows = '';
+            data.forEach(function(athlete) {
+              rows += `<ul>
+                  <li>${athlete.FullName}</li>
+                </ul>`;
+            });
+            $('#filtered-athlete').html(rows);
+          },
+          error: function() {
+            alert('Failed to load athlete data.');
+          }
+        });
+      });
+      $(document).on('click', '#filtered-athlete ul li', function() {
+        console.log("trigger click on athlete");
+        const text = $(this).text();
+        $('#search-athlete').val(text);
+      });
+    });
+
+    mapboxgl.accessToken =
+      "pk.eyJ1IjoiY2F0dHRqeWwiLCJhIjoiY2x6NzQ1dWZiMDJ6bDJpcHZxZXV0dWg2eCJ9.dffvmbgaTMBy8alZIcDSlQ";
+    const map = new mapboxgl.Map({
+      container: "map",
+      center: [2.3, 48.8],
+      zoom: 9,
+    });
+
+    const popup = new mapboxgl.Popup({
+      closeButton: false
+    });
+
+    map.on("load", () => {
+      $.ajax({
+        url: "/api/venues",
+        method: "GET",
+        success: function(data) {
+          map.addSource("locations", {
+            'type': "geojson",
+            'data': {
+              'type': "FeatureCollection",
+              'features': data.map((item) => ({
+                'type': "Feature",
+                'properties': {
+                  'name': `${item.SiteCode} - ${item.VenueName}`,
+                  'sports': item.EventList
+                },
+                'geometry': {
+                  'type': "Point",
+                  'coordinates': [
+                    parseFloat(item.Longitude),
+                    parseFloat(item.Latitude),
+                  ],
+                },
+              })),
+            },
+          });
+          map.addLayer({
+            id: "location",
+            type: "circle",
+            source: "locations",
+            paint: {
+              "circle-radius": 6,
+              "circle-color": "#B42222",
+            },
+          });
+          map.on('mousemove', 'location', (e) => {
+            map.getCanvas().style.cursor = 'pointer';
+            const feature = e.features[0];
+            popup
+              .setLngLat(feature.geometry.coordinates)
+              .setHTML(
+                `<strong>${feature.properties.name}</strong> <br/> ${feature.properties.sports}`
+              )
+              .addTo(map);
+          });
+
+          map.on('mouseleave', 'location', () => {
+            map.getCanvas().style.cursor = '';
+            popup.remove();
+          });
+        },
+        error: function() {
+          alert("Failed to load map data.");
+        },
+      });
+    });
+
+    $('#submitVenue').click(function() {
+      var lng = $('#search-venue').data('lng');
+      var lat = $('#search-venue').data('lat');
+      console.log('submitVenue', lng, lat);
+      if (lng && lat) {
+        const marker2 = new mapboxgl.Marker({
+            color: '#B42222',
+            rotation: 20
+          })
+          .setLngLat([lng, lat])
+          .addTo(map);
+        map.flyTo({
+          center: [lng, lat],
+          essential: true,
+          zoom: 18
+        });
+      }
+    });
+
+    $('#submitSport').click(function() {
+      var searchTerm = $('#search-sport').val().trim();
+      $.ajax({
+        url: '/api/coordinates?search=' + searchTerm,
+        method: 'GET',
+        success: function(data) {
+          console.log(data);
+          data.forEach(function(item) {
+            console.log(item);
+            const marker = new mapboxgl.Marker({
+                color: '#B42222',
+                rotation: 20
+              })
+              .setLngLat([item.Longitude, item.Latitude])
+              .addTo(map);
+          });
+          if (data.length == 1) {
+            map.flyTo({
+              center: [data[0].Longitude, data[0].Latitude],
+              essential: true,
+              zoom: 18
+            });
+          } else {
+						map.flyTo({
+              center: [2.3, 48.8],
+              essential: true,
+              zoom: 9
+            });
+					}
+        },
+        error: function() {
+          alert('Failed to load venue data.');
+        }
+      });
+    });
+
+    $('#submitAthlete').click(function() {
+      var ath = $('#search-athlete').val().trim();
+      console.log(ath);
+      $.ajax({
+        url: '/api/coordinates?search=' + ath,
+        method: 'GET',
+        success: function(data) {
+          console.log(data);
+          data.forEach(function(item) {
+            console.log(item);
+            const marker = new mapboxgl.Marker({
+                color: '#B42222',
+                rotation: 20
+              })
+              .setLngLat([item.Longitude, item.Latitude])
+              .addTo(map);
+          });
+          if (data.length == 1) {
+            map.flyTo({
+              center: [data[0].Longitude, data[0].Latitude],
+              essential: true,
+              zoom: 18
+            });
+          } else {
+						map.flyTo({
+              center: [2.3, 48.8],
+              essential: true,
+              zoom: 9
+            });
+					}
+        },
+        error: function() {
+          alert('Failed to load venue data.');
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
