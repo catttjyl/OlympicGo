@@ -3,15 +3,21 @@ var bodyParser = require('body-parser');
 var mysql = require('mysql2');
 var path = require('path');
 var connection = mysql.createConnection({
-                host: '34.44.103.18',
-                user: 'root',
-                port: 3306,
+                // host: '34.44.103.18',
+                user: 'quickstart-mysql-user',
+                // port: 3306,
                 password: 'olympics011',
-                database: 'paris2024'
+                database: 'paris2024',
+                socketPath: '/cloudsql/protean-tome-429613-s0:us-central1:db-sp24-olympics'
 });
 
-connection.connect;
-
+connection.connect((err) => {
+  if (err) {
+      console.error('Error connecting to the database:', err);
+      return;
+  }
+  console.log('Connected to the MySQL database.');
+});
 
 var app = express();
 
@@ -136,8 +142,8 @@ app.get('/api/login/events', function(req, res) {
 
   connection.query(sql, function(err, results) {
     if (err) {
-      console.error('Error fetching attendance data:', err);
-      res.status(500).send({ message: 'Error fetching attendance data', error: err });
+      console.error('Error fetching event data:', err);
+      res.status(500).send({ message: 'Error fetching event data', error: err });
       return;
     }
     res.json(results);
@@ -176,8 +182,8 @@ app.get('/api/login/athletes', function(req, res) {
 
   connection.query(sql, function(err, results) {
     if (err) {
-      console.error('Error fetching attendance data:', err);
-      res.status(500).send({ message: 'Error fetching attendance data', error: err });
+      console.error('Error fetching athletes data:', err);
+      res.status(500).send({ message: 'Error fetching athletes data', error: err });
       return;
     }
     res.json(results);
@@ -229,8 +235,8 @@ app.get('/api/profile', function(req, res) {
 
   connection.query(sql, function(err, results) {
     if (err) {
-      console.error('Error fetching attendance data:', err);
-      res.status(500).send({ message: 'Error fetching attendance data', error: err });
+      console.error('Error fetching user data:', err);
+      res.status(500).send({ message: 'Error fetching user data', error: err });
       return;
     }
     res.json(results);
@@ -248,8 +254,8 @@ app.get('/api/venues', function(req, res) {
 
   connection.query(sql, function(err, results) {
     if (err) {
-      console.error('Error fetching attendance data:', err);
-      res.status(500).send({ message: 'Error fetching attendance data', error: err });
+      console.error('Error fetching venues data:', err);
+      res.status(500).send({ message: 'Error fetching venues data', error: err });
       return;
     }
     res.json(results);
@@ -266,8 +272,8 @@ app.get('/api/sports', function(req, res) {
 
   connection.query(sql, function(err, results) {
     if (err) {
-      console.error('Error fetching attendance data:', err);
-      res.status(500).send({ message: 'Error fetching attendance data', error: err });
+      console.error('Error fetching sports data:', err);
+      res.status(500).send({ message: 'Error fetching sports data', error: err });
       return;
     }
     res.json(results);
@@ -288,8 +294,8 @@ app.get('/api/athletes', function(req, res) {
 
   connection.query(sql, function(err, results) {
     if (err) {
-      console.error('Error fetching attendance data:', err);
-      res.status(500).send({ message: 'Error fetching attendance data', error: err });
+      console.error('Error fetching athletes data:', err);
+      res.status(500).send({ message: 'Error fetching athletes data', error: err });
       return;
     }
     res.json(results);
@@ -305,8 +311,8 @@ app.get('/api/coordinates', function(req, res) {
 
   connection.query(sql, function(err, results) {
     if (err) {
-      console.error('Error fetching attendance data:', err);
-      res.status(500).send({ message: 'Error fetching attendance data', error: err });
+      console.error('Error fetching coordinates data:', err);
+      res.status(500).send({ message: 'Error fetching coordinates data', error: err });
       return;
     }
     res.json(results);

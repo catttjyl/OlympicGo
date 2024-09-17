@@ -1,0 +1,8 @@
+runtime: nodejs14
+env_variables:
+  DB_USER: "quickstart-mysql-user"
+  DB_PASSWORD: "olympics011"
+  DB_NAME: "paris2024"
+
+beta_settings:
+  cloud_sql_instances: protean-tome-429613:us-central1:db-sp24-olympics
