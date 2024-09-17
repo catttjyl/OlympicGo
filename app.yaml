@@ -1,8 +1,9 @@
-runtime: nodejs14
-env_variables:
-  DB_USER: "quickstart-mysql-user"
-  DB_PASSWORD: "olympics011"
-  DB_NAME: "paris2024"
-
-beta_settings:
-  cloud_sql_instances: protean-tome-429613:us-central1:db-sp24-olympics
+steps:
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "bash"
+    args:
+      [
+        "-c",
+        "gcloud config set app/cloud_build_timeout 1600 && gcloud app deploy",
+      ]
+timeout: "1600s"
