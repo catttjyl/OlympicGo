@@ -1,23 +1,40 @@
 var express = require('express');
 var bodyParser = require('body-parser');
-var mysql = require('mysql2');
+var mysql = require('mysql2/promise');
 var path = require('path');
-var connection = mysql.createConnection({
-                // host: '34.44.103.18',
-                user: 'quickstart-mysql-user',
-                // port: 3306,
-                password: 'olympics011',
-                database: 'paris2024',
-                socketPath: '/cloudsql/protean-tome-429613-s0:us-central1:db-sp24-olympics'
-});
 
-connection.connect((err) => {
-  if (err) {
-      console.error('Error connecting to the database:', err);
-      return;
-  }
-  console.log('Connected to the MySQL database.');
-});
+const createUnixSocketPool = async config => {
+  return mysql.createPool({
+    user: 'root',
+    password: 'olympics011',
+    database: 'paris2024',
+    socketPath: './cloudsql/protean-tome-429613-s0:us-central1:db-sp24-olympics',
+    ...config,
+  });
+};
+
+const createPool = async () => {
+  const config = {
+    // 'connectionLimit' is the maximum number of connections the pool is allowed
+    // to keep at once.
+    connectionLimit: 5,
+    // 'connectTimeout' is the maximum number of milliseconds before a timeout
+    // occurs during the initial connection to the database.
+    connectTimeout: 10000,
+    // 'acquireTimeout' is the maximum number of milliseconds to wait when
+    // checking out a connection from the pool before a timeout error occurs.
+    acquireTimeout: 10000,
+    // 'waitForConnections' determines the pool's action when no connections are
+    // free. If true, the request will queued and a connection will be presented
+    // when ready. If false, the pool will call back with an error.
+    waitForConnections: true,
+    // 'queueLimit' is the maximum number of requests for connections the pool
+    // will queue at once before returning an error. If 0, there is no limit.
+    queueLimit: 0,
+  };
+
+  return createUnixSocketPool(config);
+};
 
 var app = express();
 
@@ -30,6 +47,21 @@ app.set('view engine', 'ejs');
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, '/public')));
+
+let pool;
+
+app.use(async (req, res, next) => {
+  if (pool) {
+    return next();
+  }
+  try {
+    pool = await createPool();
+    next();
+  } catch (err) {
+    logger.error(err);
+    return next(err);
+  }
+});
 
 /* GET home page, respond by rendering index.ejs */
 app.get('/', function(req, res) {
@@ -280,26 +312,27 @@ app.get('/api/sports', function(req, res) {
   });
 });
 
-app.get('/api/athletes', function(req, res) {
+app.get('/api/athletes', async (req, res) => {
   const searchTerm = req.query.search || '';
   var sql = `
   SELECT CONCAT(FirstName, ' ', LastName) AS FullName,
     GROUP_CONCAT(DISTINCT EventName ORDER BY EventName SEPARATOR ', ') AS EventList, 
     Nationality
   FROM Athletes NATURAL JOIN Participate NATURAL JOIN Events 
-  WHERE (FirstName LIKE '%${searchTerm}%' OR LastName LIKE '%${searchTerm}%')
+  WHERE (FirstName LIKE ? OR LastName LIKE ?)
       AND FirstName != 'Team Australia'
   GROUP BY FirstName, LastName, Nationality
   ORDER BY LastName`;
 
-  connection.query(sql, function(err, results) {
-    if (err) {
-      console.error('Error fetching athletes data:', err);
-      res.status(500).send({ message: 'Error fetching athletes data', error: err });
-      return;
-    }
+  pool = pool || (await createPool());
+  try {
+    const [results] = await pool.query(sql, [searchTerm, searchTerm]);
     res.json(results);
-  });
+  } catch(err) {
+    console.error('Error fetching athletes data:', err);
+    res.status(500).send({ message: 'Error fetching athletes data', error: err });
+    return;
+  }
 });
 
 app.get('/api/coordinates', function(req, res) {
@@ -319,17 +352,18 @@ app.get('/api/coordinates', function(req, res) {
   });
 });
 
-app.get('/api/events', function(req, res) {
+app.get('/api/events', async (req, res) => {
   var sql = 'SELECT * FROM Events NATURAL JOIN Locations';
 
-  connection.query(sql, function(err, results) {
-    if (err) {
-      console.error('Error fetching events data:', err);
-      res.status(500).send({ message: 'Error fetching events data', error: err });
-      return;
-    }
+  pool = pool || (await createPool());
+  try {
+    const [results] = await pool.query(sql);
     res.json(results);
-  });
+  } catch(err) {
+    console.error('Error fetching events data:', err);
+    res.status(500).send({ message: 'Error fetching events data', error: err });
+    return;
+  }
 });
 
 app.listen(80, function () {
