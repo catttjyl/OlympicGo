@@ -5,11 +5,11 @@ steps:
 
   # Build the Docker image using Cloud Build
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/protean-tome-429613-s0/olympicgo", "."]
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/olympicgo", "."]
 
   # Push the Docker image to Google Container Registry
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/protean-tome-429613-s0/olympicgo"]
+    args: ["push", "gcr.io/$PROJECT_ID/olympicgo"]
 
   # Deploy the image to Cloud Run
   - name: "gcr.io/cloud-builders/gcloud"
@@ -19,7 +19,7 @@ steps:
         "deploy",
         "olympicgo",
         "--image",
-        "gcr.io/protean-tome-429613-s0/olympicgo",
+        "gcr.io/$PROJECT_ID/olympicgo",
         "--region",
         "us-central1",
         "--platform",
@@ -28,4 +28,4 @@ steps:
       ]
 
 images:
-  - "gcr.io/protean-tome-429613-s0/olympicgo"
+  - "gcr.io/$PROJECT_ID/olympicgo"
