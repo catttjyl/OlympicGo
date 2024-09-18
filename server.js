@@ -8,7 +8,7 @@ const createUnixSocketPool = async config => {
     user: 'root',
     password: 'olympics011',
     database: 'paris2024',
-    socketPath: './cloudsql/protean-tome-429613-s0:us-central1:db-sp24-olympics',
+    socketPath: '/cloudsql/protean-tome-429613-s0:us-central1:db-sp24-olympics',
     ...config,
   });
 };
@@ -366,6 +366,6 @@ app.get('/api/events', async (req, res) => {
   }
 });
 
-app.listen(80, function () {
-    console.log('Node app is running on port 80');
+app.listen(8080, '0.0.0.0', () => {
+    console.log('Node app is running on port 8080');
 });
